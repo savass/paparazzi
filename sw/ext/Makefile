@@ -58,6 +58,12 @@ libopencm3.module: update_submodules
 luftboot.module: update_submodules libopencm3.module
 	$(Q)$(MAKE) -C luftboot/src all LIBOPENCM3=../../libopencm3 PREFIX=$(PREFIX)
 
+import_mavlink:
+	mkdir ./mavlink/git
+	git clone git://github.com/mavlink/mavlink.git ./mavlink/git/
+	cmake -H./mavlink/git/ -B./mavlink
+	make -C ./mavlink
+
 clean:
 	$(Q)if [ -f libopencm3/Makefile ]; then \
 		$(MAKE) -C $(EXT_DIR)/libopencm3 clean; \
