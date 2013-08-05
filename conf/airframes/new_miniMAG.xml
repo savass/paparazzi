@@ -33,7 +33,8 @@
 <!--BOARD NAME CHANGED!!!!!!!!!!!  umarim_lite v1 is being used.. Is it a problem to use 'umarim_lite_2.0'instead???? /-->
     <target name="ap" board="umarim_lite_2.0"/>
 
-    <subsystem name="radio_control" type="ppm"/>
+   <subsystem name="radio_control" type="ppm"/>
+    
    
     <!-- Communication -->
     <subsystem name="telemetry" type="xbee_api"/>
@@ -55,7 +56,7 @@
     <servo name="AILERON_LEFT" no="2" min="1100" neutral="1470" max="1900"/>
     <servo name="AILERON_RIGHT" no="3" min="1100" neutral="1450" max="1900"/>
     <servo name="RUDDER" no="0" min="1800" neutral="1450" max="1100"/>
-    <servo name="ELEVATOR" no="1" min="1800" neutral="1450" max="1100"/>
+    <servo name="ELEVATOR" no="1" min="1800" neutral="1590" max="1100"/>
   </servos>
 
   <commands>
