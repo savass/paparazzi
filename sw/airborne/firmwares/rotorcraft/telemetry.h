@@ -1071,9 +1071,11 @@
     uart_nb_cnt++;                                          \
     if (uart_nb_cnt == 4)                                   \
       uart_nb_cnt = 0;                                      \
+      uart_nb_cnt = 0;                                      \
   }
 #else
 #define PERIODIC_SEND_UART_ERRORS(_trans, _dev) {}
 #endif
+
 
 #endif /* TELEMETRY_H */

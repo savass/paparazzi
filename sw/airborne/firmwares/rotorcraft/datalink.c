@@ -53,12 +53,44 @@
 
 #define IdOfMsg(x) (x[1])
 
+/*typedef struct {
+	int id;
+	float roll_ang;
+	float pitch_ang;
+	float ang_to_N;
+	int utm_east;
+	int utm_north;
+	int altitude;
+}device_status ;
+	
+extern device_status tracker_status;
+extern device_status aircraft_status;
+
+extern float man_tilt_angle;
+extern float man_pan_angle;
+extern int8_t tracker_mode;
+*/
+
+
 void dl_parse_msg(void) {
 
   datalink_time = 0;
 
   uint8_t msg_id = IdOfMsg(dl_buffer);
   switch (msg_id) {
+	  
+	/*case DL_Ant_Tracker_Data :
+    {
+		tracker_mode = DL_Ant_Tracker_Data_tracker_mode(dl_buffer);  
+		aircraft_status.utm_north = DL_Ant_Tracker_Data_aircraft_lat(dl_buffer);    
+		aircraft_status.utm_east = DL_Ant_Tracker_Data_aircraft_lon(dl_buffer); 
+		aircraft_status.altitude= DL_Ant_Tracker_Data_aircraft_alt(dl_buffer); 
+		man_tilt_angle = DL_Ant_Tracker_Data_tracker_pan_ang(dl_buffer);
+		man_pan_angle = DL_Ant_Tracker_Data_tracker_tilt_ang(dl_buffer);
+    }
+    break;  */
+	  
+	  
 
   case  DL_PING:
     {
@@ -75,6 +107,8 @@ void dl_parse_msg(void) {
       DOWNLINK_SEND_DL_VALUE(DefaultChannel, DefaultDevice, &i, &var);
     }
     break;
+    
+    
 
   case DL_GET_SETTING :
     {

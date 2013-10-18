@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<?xml version="1.0"?>
 <!DOCTYPE protocol SYSTEM "messages.dtd">
 <protocol>
  <!-- messages from modem or sim to server -->
@@ -600,9 +601,9 @@
       <field name="rx_msgs_rate" type="float" format="%.1f"/>
       <field name="ping_time" type="float" format="%.2f" unit="ms"/>
     </message>
+    
 
 
- <!-- 72 is free -->
  <!-- 73 is free -->
  <!-- 74 is free -->
  <!-- 75 is free -->
@@ -2104,12 +2105,37 @@
     <field name="V_East" type="double"/>
     <field name="V_Down" type="double"/>
   </message>
+  
+    <!--HERE COMES THE TROUBLE YUKARIDAN AŞŞAĞIYA*****************************************************************-->
+    
+  <message name="ANT_TRACKER" id="72">
+	
+	<field name="mode" type="uint8"/>  
+    <field name="pan_ang" type="float"/>
+	<field name="tilt_ang" type="float"/>
+	<field name="xxx_ang" type="float"/>
+	 
+	<!-- 
+    <field name="id_sp" type="uint8"/>
+    <field name="mode" type="uint8"/> -->
+  </message>
 
 </class>
 
 
-
-<class name="datalink">
+<class name="datalink">   <!--UPLINK OLMASI LAZIM-->
+	
+ <message name="ANT_TRACKER_DATA" id="73" link="forwarded">  
+  <field name="ac_id" type="uint8"/>
+  <field name="tracker_mode" type="uint8"/>
+  <field name="tracker_pan_ang" type="float" />
+  <field name="tracker_tilt_ang" type="float" />
+  <field name="aircraft_lat" type="float" />
+  <field name="aircraft_lon" type="float" />
+  <field name="aircraft_alt" type="float" />
+  <field name="tracker_alt" type="float" />
+ </message>
+	
  <message name="ACINFO" id="1" link="broadcasted">
   <field name="course" type="int16" unit="decideg"></field>
   <field name="utm_east"  type="int32" unit="cm"></field>
@@ -2286,8 +2312,6 @@
  </message>
 
 </class>
-
-
 
 
 <class name="ground">
