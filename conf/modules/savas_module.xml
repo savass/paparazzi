@@ -1,0 +1,16 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="savas_module">
+  <doc>
+    <description>Dummy module which tries to move a servo with 5 sec period frekans saniye gibi verildi..</description>
+  <define name="SAVAS_SERVO_ID" value="nb" description="Id of the servo (default: SAVAS_SERVO)"/>
+  </doc>
+  <header>
+    <file name="savas_module.h"/>
+  </header>
+  <init fun="isinma_hareketleri()"/>
+  <periodic fun="hareket_frekansi()" freq="1" autorun="TRUE" />  
+  <makefile  target="ap|sim|jsbsim|nps">
+    <file name="savas_module.c"/>
+  </makefile>
+</module>

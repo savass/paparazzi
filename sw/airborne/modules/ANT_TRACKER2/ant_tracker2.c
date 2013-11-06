@@ -4,24 +4,20 @@
 *
 *
 */
+
 #include <math.h>
 #include "generated/airframe.h"
 #include "subsystems/actuators.h"
 #include "ant_tracker2.h"
 #include "state.h"
-#include "messages.h"
 #include "subsystems/datalink/downlink.h"
 #include "mcu_periph/uart.h"
 #include "math/pprz_geodetic_float.h"
+#include "subsystems/navigation/common_nav.h" 
 
-#include "inter_mcu.h"
-#include "subsystems/navigation/common_nav.h"
-#include "autopilot.h"
+//For Fixed Wing Configurations
 #include "generated/flight_plan.h"
-#include "subsystems/navigation/traffic_info.h"
 
-#include "subsystems/gps.h"
-#include "math/pprz_geodetic_float.h"
 
 
 
@@ -50,32 +46,24 @@ typedef struct {
 	int y;
 	int z;
 }device_status ;
+device_status tracker_status;
+device_status aircraft_status;
 
-//structures defined to use in conversations;
 struct LlaCoor_f inc_aircraft_data_lla;
 struct EnuCoor_f inc_aircraft_data_enu ;
 struct LtpDef_f aircraft_ref;
 
-
-//EcefCoor_f inc_aircraft_data_ecef;
-
-device_status tracker_status;
-device_status aircraft_status;
-
 float man_tilt_angle;
 float man_pan_angle;
-int8_t tracker_mode;
 
 static uint8_t mode;
 
 float tilt_angle;
 float pan_angle;
-float aircraft_distance;
 
-void ant_tracker_inform_ground(void)						//Function to send status of joints
+void ant_tracker_inform_ground(void)					//Function to send status of joints
 {
 //Send ivy to see values
-//convert values to degrees for readibility
 float debug_par = KP_TRACKER;
 
 DOWNLINK_SEND_ANT_TRACKER(DefaultChannel, DefaultDevice, &mode, &pan_angle, &tilt_angle, &debug_par);	
@@ -95,9 +83,6 @@ void ant_tracker_init(void)  							//Initiation function
 
 void ant_tracker_track_target(void) 					//Function to be run after 'Initiation function'
 {
-    //Checking gps fix will be needed.. 
-   //ActuatorSet(PAN_SERVO_ID, PAN_SERVO_MIN);
-//ActuatorSet(TILT_SERVO_ID, TILT_SERVO_MIN); 
     
     
 	calculate_angles();
@@ -116,7 +101,7 @@ void ant_tracker_get_new_aircraft_data(void)			//Parse 'Ant_Tracker_Data' messag
       
       
             
-      if (aircraf_no  == AC_ID) {   //bu koda iyi bak gözüm ileride havada haberleşme için kullanılabilir gibi geliyor....
+      if (aircraf_no  == AC_ID) {   
 		  
 		
 		mode = DL_ANT_TRACKER_DATA_tracker_mode(dl_buffer);  
@@ -150,7 +135,7 @@ void ant_tracker_get_new_aircraft_data(void)			//Parse 'Ant_Tracker_Data' messag
 
 }
 
-void calculate_angles(void)					//Calculate joint angles and write them to variables
+void calculate_angles(void)								//Calculate joint angles and write them to variables
 {
 	//check tracker_gps_fix and aircraft_gps_fix (both needs to be 1)  , (self note: tracker gps fix değilse ve daha önce fix olmuşsa kullanılmaya devam edilebilinir.
 	// 
@@ -173,7 +158,7 @@ void calculate_angles(void)					//Calculate joint angles and write them to varia
 	
 }
 
-void fill_device_status(void)				// Fill Aircraft and tracker structures.
+void fill_device_status(void)							// Fill Aircraft and tracker structures.
 {
 	
 	
@@ -206,12 +191,10 @@ void fill_device_status(void)				// Fill Aircraft and tracker structures.
 		
 }
 
-
-
-void process_angles(void)					//Send calculated angles and additional data to tracker over ivybus.. 	
+void process_angles(void)								//Send calculated angles and additional data to tracker over ivybus.. 	
 {
 
-//mode değişkenine göre işlemler burada olabilir.
+
 
 #ifdef USE_SERVO_PAN_TILT
 drive_servos();
@@ -225,7 +208,7 @@ drive_servos();
 #ifdef USE_SERVO_PAN_TILT
 
 int pan_applied, tilt_applied;
-void drive_servos(void)   					//This is just for demostration. Drive servos within its limits..
+void drive_servos(void)   												//Drive servos within its limits..
 {
 		
 	
@@ -244,16 +227,9 @@ void drive_servos(void)   					//This is just for demostration. Drive servos wit
 	
 	int pan_pwm_val,tilt_pwm_val;
 
-
-
-//	if (servo_pan <PAN_SERVO_MAX_ANG && servo_pan > PAN_SERVO_MIN_ANG ) 		//Move pan servo
 					
 	if ( pan_target_in_range(servo_pan) ==  0 ) {   //target in range				
-		//servo_pan=PAN_SERVO_MAX_ANG;
-					
-					//servo pan ve servo_tilt değerleri müsade edilen değerler arasında ama halen
-					//275 gibi birşeyler veriyor. Bu değer delta olmalı
-					//Şimdilik;
+		
 					
 					float pan_servo_ang_delta;
 					
@@ -303,17 +279,7 @@ void drive_servos(void)   					//This is just for demostration. Drive servos wit
 						else {
 						pan_pwm_val=PAN_SERVO_MIN - (servo_pan-PAN_SERVO_MIN_ANG)*(abs(PAN_SERVO_MAX-PAN_SERVO_MIN)/(pan_servo_ang_delta));	
 						}
-					}
-					
-					
-					/*
-					if (PAN_SERVO_MAX > PAN_SERVO_MIN) {
-					pan_pwm_val=(servo_pan-PAN_SERVO_MIN_ANG)*(abs(PAN_SERVO_MAX-PAN_SERVO_MIN)/(pan_servo_ang_delta)) + PAN_SERVO_MIN;
-					}
-					else {
-					pan_pwm_val=PAN_SERVO_MIN - (servo_pan-PAN_SERVO_MIN_ANG)*(abs(PAN_SERVO_MAX-PAN_SERVO_MIN)/(pan_servo_ang_delta));	
-					}*/
-														
+					}					
 					
 					
 					
@@ -399,53 +365,59 @@ void drive_servos(void)   					//This is just for demostration. Drive servos wit
 	
 }
 
-int pan_target_in_range(float desired_pan_value) {
+int pan_target_in_range(float desired_pan_value) {						//returns 0 within servo limits , returns pwm of edge -which target is close to-
 	
 	if  (PAN_SERVO_MAX_ANG > PAN_SERVO_MIN_ANG) {
 	
 		if ((desired_pan_value > PAN_SERVO_MIN_ANG) && (desired_pan_value < PAN_SERVO_MAX_ANG) ) return 0;		//value in range send 0 for calculation
 		
-		//This should be improved
-		if ( (desired_pan_value < PAN_SERVO_MIN_ANG) ) return PAN_SERVO_MIN;
-		else return PAN_SERVO_MAX;
-	
-	
+		//Determine & send close edge pwm value;
+		if (desired_pan_value >PAN_SERVO_MAX_ANG) {
+			if ( (desired_pan_value - PAN_SERVO_MAX_ANG) < (360 - desired_pan_value + PAN_SERVO_MIN_ANG)) return PAN_SERVO_MAX;
+			else return PAN_SERVO_MIN;
+		}else {
+		if ( (PAN_SERVO_MIN_ANG - desired_pan_value) < (360 - PAN_SERVO_MAX_ANG + desired_pan_value)) return PAN_SERVO_MIN;
+			else return PAN_SERVO_MAX;		
+		}
+		
 	}
 	else { 		//0 point is within defined travel area of pan servo
 	
 	if ( (desired_pan_value < PAN_SERVO_MAX_ANG) ) return 0;
 	if ( (desired_pan_value > PAN_SERVO_MIN_ANG) ) return 0;
-	if ( (desired_pan_value > ((PAN_SERVO_MIN_ANG-PAN_SERVO_MAX_ANG)/2) ) ) return PAN_SERVO_MIN;  //This needs to be improved!
-	if ( (desired_pan_value < ((PAN_SERVO_MIN_ANG-PAN_SERVO_MAX_ANG)/2) ) ) return PAN_SERVO_MAX;  //This needs to be improved!
-	
-	//else return PAN_SERVO_MAX;
+	if ( (PAN_SERVO_MIN_ANG - desired_pan_value) < (desired_pan_value-PAN_SERVO_MAX_ANG) ) return PAN_SERVO_MIN;
+	else return PAN_SERVO_MAX;
+
 	}
 	
 	
 }
 
 
-int tilt_target_in_range(float desired_tilt_value) {
+int tilt_target_in_range(float desired_tilt_value) {					//returns 0 within servo limits , returns pwm of edge -which target is close to-
 	
 	if  (TILT_SERVO_MAX_ANG > TILT_SERVO_MIN_ANG) {
 	
-		if ((desired_tilt_value > TILT_SERVO_MIN_ANG) && (desired_tilt_value < TILT_SERVO_MAX_ANG)) return 0;		//value in range send 0 for calculation
+		if ((desired_tilt_value > TILT_SERVO_MIN_ANG) && (desired_tilt_value < TILT_SERVO_MAX_ANG) ) return 0;		//value in range send 0 for calculation
 		
-		//This should be improved
-		if ( (desired_tilt_value < TILT_SERVO_MIN_ANG) ) return TILT_SERVO_MIN;
-		else return TILT_SERVO_MIN;
-	
-	
+		//Determine & send close edge pwm value;
+		if (desired_tilt_value >TILT_SERVO_MAX_ANG) {
+			if ( (desired_tilt_value - TILT_SERVO_MAX_ANG) < (360 - desired_tilt_value + TILT_SERVO_MIN_ANG)) return TILT_SERVO_MAX;
+			else return TILT_SERVO_MIN;
+		}else {
+		if ( (TILT_SERVO_MIN_ANG - desired_tilt_value) < (360 - TILT_SERVO_MAX_ANG + desired_tilt_value)) return TILT_SERVO_MIN;
+			else return TILT_SERVO_MAX;		
+		}
+		
 	}
 	else { 		//0 point is within defined travel area of tilt servo
 	
 	if ( (desired_tilt_value < TILT_SERVO_MAX_ANG) ) return 0;
 	if ( (desired_tilt_value > TILT_SERVO_MIN_ANG) ) return 0;
-	if ( (desired_tilt_value > ((TILT_SERVO_MIN_ANG-TILT_SERVO_MAX_ANG)/2) ) ) return TILT_SERVO_MIN;  //This needs to be improved!
-	if ( (desired_tilt_value < ((TILT_SERVO_MIN_ANG-TILT_SERVO_MAX_ANG)/2) ) ) return TILT_SERVO_MAX;  //This needs to be improved!
-	
+	if ( (TILT_SERVO_MIN_ANG - desired_tilt_value) < (desired_tilt_value-TILT_SERVO_MAX_ANG) ) return TILT_SERVO_MIN;
+	else return TILT_SERVO_MAX;
+
 	}
-	
 	
 }
 
@@ -454,7 +426,9 @@ int tilt_target_in_range(float desired_tilt_value) {
 
 #endif //USE_SERVO_PAN_TILT
 
-//From now on, code is taken from modules/cam_control/point.c file. Read that for decumentation
+/*From now on, code is taken from modules/cam_control/point.c file. Read that for documentation. Some modifications are made for this module. Arnold Schroeter & Chris Efstathiou
+*did great job on code & calculations & documentation.
+*/
 
 typedef struct {
          float fx;
@@ -674,40 +648,7 @@ represented on a circle in standard mathematical notation.
   vMultiplyMatrixByVector(&svObjectPositionForPlane2, smRotation, svObjectPositionForPlane);
 
 
-/*
- * This is for another two axes camera mechanisms. The tilt servo is fixed to
- * the fuselage and moves the pan servo.
- *
- * tilt servo, looking from left:
- *
- *    plane front <--------------- plane back
- *                      / I \
- *                     /  I  \
- *                   45°  I  -45°
- *                        0°
- *
- *
- * pan servo, looking from back:
- *
- *     plane left --------------- plane right
- *                     / I \
- *                    /  I  \
- *                  45°  I  -45°
- *                       0°
- *
- */
 
-
-
-/*
-  *fTilt = (float)(atan2( svObjectPositionForPlane2.fx, -svObjectPositionForPlane2.fz));
-
-  *fPan  = (float)(atan2(-svObjectPositionForPlane2.fy,
-                          sqrt(  svObjectPositionForPlane2.fx * svObjectPositionForPlane2.fx
-                               + svObjectPositionForPlane2.fz * svObjectPositionForPlane2.fz )
-                        ));
-
-*/
 
 
 	*fPan = (float)(atan2( svObjectPositionForPlane2.fy, svObjectPositionForPlane2.fx));
@@ -717,98 +658,8 @@ represented on a circle in standard mathematical notation.
                                + svObjectPositionForPlane2.fx * svObjectPositionForPlane2.fx )
                         ));
 
-
+	//Roll control can be added
 
 
 }
-
-
-
-/*YARDIMCI OLABILECEK ÇÖP
- * 		float z1,z2,z3;
-		z1=(stateGetNedToBodyEulers_f()->phi) *180/M_PI ;
-		z2=(stateGetNedToBodyEulers_f()->theta) *180/M_PI;
-		z3=(stateGetNedToBodyEulers_f()->psi) *180/M_PI;
-		DOWNLINK_SEND_ANT_TRACKER(DefaultChannel, DefaultDevice, &mode, &z1, &z2, &z3);	
-
-
- //For debug process >>>
-		float z1,z2,z3;
-		z1=pan_angle;
-		z2=tilt_angle;
-		z3=0;
-		DOWNLINK_SEND_ANT_TRACKER(DefaultChannel, DefaultDevice, &mode, &z1, &z2, &z3);	
-		//For debug process <<<<	 
- * 
- * //for demostration this line adds stg 
-//DOWNLINK_SEND_ANT_TRACKER(DefaultChannel, DefaultDevice, &inc_aircraft_data_ecef.z, stateGetPositionEcef_f()->z;, NULL);
-
-//pitch_acisi=pic_acisi;
-
-//pitch_acisi=pic_acisi;
-* float x,y,z;	
-		x = inc_aircraft_data_lla.lat;
-		y = inc_aircraft_data_lla.lon;
-		z = inc_aircraft_data_lla.alt;
-		
-		DOWNLINK_SEND_ANT_TRACKER(DefaultChannel, DefaultDevice, &mode, &x, &y, &z);
-		* 
-bool_t oldu_mu(void) {
-
-struct FloatEulers* acilar = stateGetNedToBodyEulers_f();
-
-pic_acisi=fabs(acilar->theta);
-
-
-
-
-bool_t dooru_mu;
-	if (pic_acisi > 0.174532925 ){
-	 //devam=TRUE;
-	 dooru_mu= TRUE;
-	 
-	}
-	else{
-	 dooru_mu= FALSE;
-	 //devam=FALSE;
-	}
-return dooru_mu;
-}
-* 
-* 
-
-		//struct FloatEulers* acilar = stateGetNedToBodyEulers_f();	
-		
-	
-		//DOWNLINK_SEND_ANT_TRACKER(DefaultChannel, DefaultDevice, &tracker_status.x, &tracker_status.y, &tracker_status.z);
-		
-		if (oldu_mu()){
-		  
-			ActuatorSet(PAN_SERVO_ID, PAN_SERVO_MIN);
-			
-				 if (sol_sag) {
-				  servo_acisi=PAN_SERVO_MAX;
-				  sol_sag = FALSE;
-				   }
-				  else{
-				  servo_acisi=PAN_SERVO_MIN;
-				  sol_sag = TRUE;
-				  } 
-				 ActuatorSet(PAN_SERVO_ID, servo_acisi);
-				}
- 
- ActuatorSet(PAN_SERVO_ID, PAN_SERVO_MIN);
- * 
- * 
- * 
- * 
- * 
- * */
-
-
-
-
-
-	
-
 

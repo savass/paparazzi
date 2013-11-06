@@ -10,7 +10,10 @@
 
 <airframe name="Twinjet">
 
-  <firmware name="fixedwing">
+
+
+
+<firmware name="fixedwing">
     <target name="ap" 			board="twog_1.0"/>
     <target name="sim" 			board="pc"/>
 
@@ -40,6 +43,7 @@
       <configure name="ADC_CHANNEL_GENERIC1" value="ADC_7" />
     </load>
     <load name="infrared_adc.xml"/>
+
   </modules>
 
   <servos>

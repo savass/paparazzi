@@ -13,6 +13,8 @@
     <servo name="MOTOR"         no="0" min="1290" neutral="1290" max="1810"/>
     <servo name="AILEVON_LEFT"  no="1" min="2000" neutral="1510" max="1000"/>
     <servo name="AILEVON_RIGHT" no="3" min="1000" neutral="1535" max="2000"/>
+<servo name="PAN_SERVO" no="2" min="1000" neutral="1535" max="2000"/>
+<servo name="TILT_SERVO" no="4" min="1000" neutral="1535" max="2000"/>
   </servos>
 
   <commands>
@@ -195,6 +197,27 @@
     <load name="digital_cam_servo.xml">
       <define name="DC_SHUTTER_SERVO" value="COMMAND_SHUTTER" />
     </load>
+<load name="ant_tracker2.xml">
+		<define name="USE_SERVO_PAN_TILT"/>
+		
+		<define name="KP_TRACKER" value="0.4"/>
+		
+		<define name="TILT_SERVO_ID" value="TILT_SERVO"/>
+		<define name="PAN_SERVO_ID" value="PAN_SERVO"/>
+		
+		<define name="PAN_SERVO_MAX_ANG" value="320"/>
+		<define name="PAN_SERVO_MIN_ANG" value="220"/>
+		
+		<define name="TILT_SERVO_MAX_ANG" value="310"/>
+		<define name="TILT_SERVO_MIN_ANG" value="225" />
+		
+		<define name="PAN_SERVO_MIN" value="1100"/>
+		<define name="PAN_SERVO_MAX" value="1900"/>
+		<define name="TILT_SERVO_MIN" value="1100"/>
+		<define name="TILT_SERVO_MAX" value="1900"/>
+	
+
+	</load>
 
   </modules>
 

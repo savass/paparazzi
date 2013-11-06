@@ -46,11 +46,12 @@
 #endif
 
 #ifndef TILT_SERVO_MAX
-#define TILT_SERVO_MAX 1700
+#define TILT_SERVO_MAX 2000
+//#warning heyooo!
 #endif
 
 #ifndef TILT_SERVO_MIN
-#define TILT_SERVO_MIN 1300
+#define TILT_SERVO_MIN 1000
 #endif
 
 #ifndef TILT_SERVO_NOM
@@ -58,23 +59,23 @@
 #endif 
 
 #ifndef KP_TRACKER
-#define KP_TRACKER 0.5 
+#define KP_TRACKER 0.2 
 #endif 
 
 #ifndef PAN_SERVO_MAX_ANG
-#define PAN_SERVO_MAX_ANG 90
+#error Please define PAN_SERVO_MAX_ANG in your airframe file. 
 #endif
 
 #ifndef PAN_SERVO_MIN_ANG
-#define PAN_SERVO_MIN_ANG 0
+#error Please define PAN_SERVO_MIN_ANG in your airframe file. 
 #endif
 
 #ifndef TILT_SERVO_MAX_ANG
-#define TILT_SERVO_MAX_ANG 90
+#error Please define TILT_SERVO_MAX_ANG in your airframe file.
 #endif
 
 #ifndef TILT_SERVO_MIN_ANG
-#define TILT_SERVO_MIN_ANG 0
+#error Please define TILT_SERVO_MIN_ANG in your airframe file.
 
 #endif
 

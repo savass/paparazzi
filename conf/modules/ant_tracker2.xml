@@ -4,6 +4,7 @@
   <doc>
     <description>Anthenna tracker module v2..</description>
 	<define name="USE_SERVO_PAN_TILT" value="nb" description="Use servos to control pan & tilt mechanism"/>
+	
 	<define name="PAN_SERVO_ID" value="nb" description="Id of the pan servo (default: PAN_SERVO)"/>
 	<define name="TILT_SERVO_ID" value="nb" description="Id of the tilt servo (default: TILT_SERVO)"/>
 
@@ -12,12 +13,12 @@
 	<define name="TILT_SERVO_MIN" value="pwm" description="Tilt servo max pwm duration in ms  (default: 2000)"/>
 	<define name="TILT_SERVO_MAX" value="pwm" description="Pilt servo min pwm duration in ms  (default: 1000)"/>
 	
-	<define name="PAN_SERVO_MAX_ANG" value="nb" description="(0-360) Max angle that pan servo can reach in degrees (see documentation) (default: 90 degree)"/>
-	<define name="PAN_SERVO_MIN_ANG" value="nb" description="(0-360) Min angle that pan servo can reach in degrees (see documentation) (default: 0 degree)"/>
-	<define name="TILT_SERVO_MAX_ANG" value="nb" description="(0-360) Max angle that tilt servo can reach in degrees (see documentation) (default: 90 degree)"/>
-	<define name="TILT_SERVO_MIN_ANG" value="nb" description="(0-360) Min angle that tilt servo can reach in degrees (see documentation) (default: 0 degree)"/>
+	<define name="PAN_SERVO_MAX_ANG" value="nb" description="(0-360) Max angle that pan servo can reach in degrees (see documentation)"/>
+	<define name="PAN_SERVO_MIN_ANG" value="nb" description="(0-360) Min angle that pan servo can reach in degrees (see documentation)"/>
+	<define name="TILT_SERVO_MAX_ANG" value="nb" description="(0-360) Max angle that tilt servo can reach in degrees (see documentation)"/>
+	<define name="TILT_SERVO_MIN_ANG" value="nb" description="(0-360) Min angle that tilt servo can reach in degrees (see documentation)"/>
 	
-	<define name="KP_TRACKER" value="nb" description="kp (default: 0.5)"/>
+	<define name="KP_TRACKER" value="nb" description="kp (default: 0.2)"/>
 	
 	<define name="DISABLE_AUTO_HEADING" value="nb" description="Disable auto heading. Head your tracker to North if you use this option!"/>
 	<define name="DISABLE_AUTO_ATTITUDE" value="nb" description="Disable auto attitude. Place your tracker/device in flat place! Don't use this option if it really is necasarry."/>

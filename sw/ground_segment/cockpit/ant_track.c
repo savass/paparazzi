@@ -211,7 +211,11 @@ int main (int argc, char** argv) {
   IvyInit ("AntennaTracker", "AntennaTracker READY", NULL, NULL, NULL, NULL);
   IvyBindMsg(on_GPS_STATUS, NULL, "^\\S* GPS (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*)");
   IvyBindMsg(on_NAV_STATUS, NULL, "^\\S* NAVIGATION (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*)");
+  
+  
   IvyStart("127.255.255.255");
+	
+
 
   gtk_main();
   return 0;
