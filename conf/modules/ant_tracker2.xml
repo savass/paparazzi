@@ -1,0 +1,37 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="ant_tracker2">
+  <doc>
+    <description>Anthenna tracker module v2..</description>
+	<define name="USE_SERVO_PAN_TILT" value="nb" description="Use servos to control pan & tilt mechanism"/>
+
+	<define name="PAN_SERVO_ID" value="nb" description="Id of the pan servo (default: PAN_SERVO)"/>
+	<define name="TILT_SERVO_ID" value="nb" description="Id of the tilt servo (default: TILT_SERVO)"/>
+
+	<define name="PAN_SERVO_MIN" value="pwm" description="Pan servo max pwm duration in ms  (default: 2000)"/>
+	<define name="PAN_SERVO_MAX" value="pwm" description="Pan servo min pwm duration in ms  (default: 1000)"/>
+	<define name="TILT_SERVO_MIN" value="pwm" description="Tilt servo max pwm duration in ms  (default: 2000)"/>
+	<define name="TILT_SERVO_MAX" value="pwm" description="Pilt servo min pwm duration in ms  (default: 1000)"/>
+
+	<define name="PAN_SERVO_MAX_ANG" value="nb" description="(0-360) Max angle that pan servo can reach in degrees (see documentation)"/>
+	<define name="PAN_SERVO_MIN_ANG" value="nb" description="(0-360) Min angle that pan servo can reach in degrees (see documentation)"/>
+	<define name="TILT_SERVO_MAX_ANG" value="nb" description="(0-360) Max angle that tilt servo can reach in degrees (see documentation)"/>
+	<define name="TILT_SERVO_MIN_ANG" value="nb" description="(0-360) Min angle that tilt servo can reach in degrees (see documentation)"/>
+
+	<define name="KP_TRACKER" value="nb" description="kp (default: 0.2)"/>
+
+	<define name="DISABLE_AUTO_HEADING" value="nb" description="Disable auto heading. Head your tracker to North if you use this option!"/>
+	<define name="DISABLE_AUTO_ATTITUDE" value="nb" description="Disable auto attitude. Place your tracker/device in flat place! Don't use this option if it really is necasarry."/>
+
+  </doc>
+  <header>
+    <file name="ant_tracker2.h"/>
+  </header>
+  <init fun="ant_tracker_init()"/>
+  <periodic fun="ant_tracker_track_target()" freq="20" autorun="TRUE"/>
+  <periodic fun="ant_tracker_inform_ground()" freq="0.5" autorun="TRUE"/>
+  <datalink fun="ant_tracker_get_new_aircraft_data()" message="ANT_TRACKER_DATA" />
+  <makefile  target="ap|sim|jsbsim|nps">
+    <file name="ant_tracker2.c"/>
+  </makefile>
+</module>
