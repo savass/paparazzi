@@ -1165,7 +1165,15 @@
     <field name="status" type="uint8" values="UNINIT|RUNNING|LOCKED"/>
   </message>
 
-  <!-- 138 is free -->
+  <!--New Ant Tracker -->
+  <message name="ANT_TRACKER" id="138">
+
+	<field name="mode" type="uint8"/>
+	<field name="pan_ang" type="float"/>
+	<field name="tilt_ang" type="float"/>
+	<field name="xxx_ang" type="float"/>
+
+  </message>
 
   <message name="FILTER_COR" id="139">
     <field name="mphi"   type="int32"/>
@@ -2197,6 +2205,20 @@
 
 
 <class name="datalink">
+
+  <!-- New ant Tracker-->
+  <message name="ANT_TRACKER_DATA" id="73" link="forwarded">
+  <field name="ac_id" type="uint8"/>
+  <field name="tracker_mode" type="uint8"/>
+  <field name="tracker_pan_ang" type="float" />
+  <field name="tracker_tilt_ang" type="float" />
+  <field name="aircraft_lat" type="float" />
+  <field name="aircraft_lon" type="float" />
+  <field name="aircraft_alt" type="float" />
+  <field name="tracker_alt" type="float" />
+ </message>
+
+
  <message name="ACINFO" id="1" link="broadcasted">
   <field name="course" type="int16" unit="decideg"></field>
   <field name="utm_east"  type="int32" unit="cm"></field>
