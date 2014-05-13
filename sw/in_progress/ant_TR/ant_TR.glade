@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.16.1 -->
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkAdjustment" id="Pan_Angle_Adjustment">
     <property name="upper">360</property>
     <property name="page_increment">10</property>
@@ -324,7 +325,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="use_action_appearance">False</property>
                         <signal name="clicked" handler="on_set_button_clicked" swapped="no"/>
                       </object>
                       <packing>
@@ -475,9 +475,6 @@
                               </packing>
                             </child>
                             <child>
-                              <placeholder/>
-                            </child>
-                            <child>
                               <object class="GtkLabel" id="label12">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
@@ -552,6 +549,9 @@
                                 <property name="width">1</property>
                                 <property name="height">1</property>
                               </packing>
+                            </child>
+                            <child>
+                              <placeholder/>
                             </child>
                           </object>
                           <packing>
@@ -731,7 +731,6 @@
                                 <property name="can_focus">True</property>
                                 <property name="tooltip_markup" translatable="yes">tooltip markup</property>
                                 <property name="tooltip_text" translatable="yes">This is the tooltip for manuel/automatic control chanhing.</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="button-press-event" handler="on_manuel_mod_changed" swapped="no"/>
                               </object>
                               <packing>
@@ -782,27 +781,10 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkAlignment" id="alignment2">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <placeholder/>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="position">1</property>
-                  </packing>
+                  <placeholder/>
                 </child>
                 <child type="tab">
-                  <object class="GtkLabel" id="label_notebook_settings">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Settings</property>
-                  </object>
-                  <packing>
-                    <property name="position">1</property>
-                    <property name="tab_fill">False</property>
-                  </packing>
+                  <placeholder/>
                 </child>
               </object>
               <packing>

@@ -17,13 +17,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+
+#include <sys/types.h>
+#include <unistd.h>
+
+
 //To parse conf.xml
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
-//char *xmlFileName = "/home/pprz/DEV/paparazzi/conf/conf.xml";
 #include "main.h"
-// assuming local path from sw/ground_segment/tmtc
-char defaultPprzFolder[] = "../../../..";
+
 #ifdef USE_ORION
 #include "orion.h"
 
@@ -44,7 +47,6 @@ char defaultPprzFolder[] = "../../../..";
 char defaultIvyBus[] = "224.255.255.255:2010";
 #else
 char defaultIvyBus[] = "127.255.255.255:2010";
-//char defaultIvyBus[] = "192.168.1.255:2010";
 #endif
 char* IvyBus;
 
@@ -90,9 +92,8 @@ typedef struct {
 	float longitude;
 	float altitude;
 	char *name;
-}dev_status ;
-
-dev_status DevStatus [2 * MaxNumDevices];  //Holds all status of devices
+}DevStatus_s ;
+DevStatus_s DevStatus [2 * MaxNumDevices];  //Holds all status of devices
 
 typedef struct{
 	int used;
@@ -101,15 +102,14 @@ typedef struct{
 	int aircraft_id;
 	float pan_angle;
 	float tilt_angle;
-}control_list;
-control_list TrackContList [MaxNumDevices];
+}TrackContList_s;
+TrackContList_s TrackContList [MaxNumDevices];
 
 typedef struct {
 	int device_id;
 	char name[MaxNumConfNameLength];
-}device_names ;
-
-device_names DevNames [MaxNumConfNames];
+}DevNames_s ;
+DevNames_s DevNames [MaxNumConfNames];
 
 
 
@@ -130,10 +130,6 @@ gtk_main_quit();
 }
 
 void on_window_ant_track_show(GtkWidget *object, gpointer user_data)  {
-        //gtk_label_set_text(myGUI->label_aircraft_id,aircraft_id);
-		//gtk_label_set_text(myGUI->label_tracker_id,tracker_id);
-		//gtk_statusbar_push(myGUI->statusbar,0,"Waiting GPS fix..");
-		//gtk_switch_set_active(myGUI->GtkSwitch_manuel_mod,tracker_mode);  //This should be fixed
 
 		if(StartParamUsed>0) {
 		Refresh_Device_List();
@@ -145,16 +141,6 @@ void on_window_ant_track_show(GtkWidget *object, gpointer user_data)  {
 }
 
 void on_combobox_aircrafts_changed (GtkWidget *object, gpointer user_data) {
-
-/*int selected = gtk_combo_box_get_active(myGUI->combobox_aircrafts);
-
-char str[15];
-sprintf(str, "%d", selected);
-
-show_err_msg(str);
-*/
-
-}
 
 void on_combobox_tracker_changed (GtkWidget *object, gpointer user_data) {
 
@@ -189,28 +175,8 @@ SelAircraftID = DevStatus[gtk_combo_box_get_active(myGUI->combobox_devices)].dev
 TrackContList[gtk_combo_box_get_active(myGUI->combobox_trackers)].aircraft_id=SelAircraftID;
 
 Refresh_Aircraft_Labels();
-//sizeof(tracker_control_list)/sizeof(control_list);
 
-//tracker_control_list = malloc( MaxNumDevices * sizeof (struct control_list) );
 
-/*tracker_control_list[0].tracker_id=2;
-tracker_control_list[0].aircraft_id=5;
-tracker_control_list[0].used=1;
-tracker_control_list[1].tracker_id=3;
-tracker_control_list[1].aircraft_id=6;
-tracker_control_list[1].used=1;
-tracker_control_list[2].tracker_id=4;
-tracker_control_list[2].aircraft_id=6;
-tracker_control_list[2].used=1;
-refresh_tracker_list();*/
-
-/*char str[15];
-sprintf(str, "%d", (sizeof (&tracker_control_list) )) ;
-
-show_err_msg(str);
-*/
-
-//add_tracker_if_new(5);	/sizeof(tracker_control_list[0])
 }
 
 int orion_pan_buf= 1;
@@ -316,12 +282,14 @@ void on_FLIGHT_PARAM_STATUS(IvyClientPtr app, void *user_data, int argc, char *a
 
 }
 
-//int cal_gotoang(int ang, int ang_buf)
-//ANT_TRACK message is received
 void on_tracker_ANT_TRACK(IvyClientPtr app, void *user_data, int argc, char *argv[]) {
 
+  int TrackerId= atoi(argv[0]);
 
-	int IncDevId = Check_Controlled_Tracker_List ( atoi(argv[0]) );
+  if (check_device_name(TrackerId) < 0) return;
+
+
+	int IncDevId = Check_Controlled_Tracker_List (TrackerId );
 
 
 	//int IncDevId = Get_Dev_Id ( atoi(argv[0]) );
@@ -379,6 +347,98 @@ void on_tracker_ANT_TRACK(IvyClientPtr app, void *user_data, int argc, char *arg
 
 }
 
+int ProcessID;
+int RequestID;
+void on_tracker_NEW_AC(IvyClientPtr app, void *user_data, int argc, char *argv[]) {
+
+ //Request config
+ request_ac_config(atoi(argv[0]));
+
+}
+
+void request_ac_config(int ac_id_req) {
+
+  RequestID++;
+  IvySendMsg("anttrUI %d_%d CONFIG_REQ %d" ,ProcessID, RequestID ,ac_id_req );
+
+  if (verbose) {
+  printf("AC(id= %d) config requested.\n",ac_id_req);
+  }
+}
+
+void on_tracker_GET_CONFIG(IvyClientPtr app, void *user_data, int argc, char *argv[]) {
+
+  //Check request_id
+  int i=0;
+
+  int RmId[2];
+  /*
+   * RmId[0] >> ProcessID of incoming MsgProcessId
+   * RmId[1] >> RequestID of incoming MsgProcessId
+   */
+
+  //Split arg0 to get process id and request id
+  char * mtok;
+  mtok = strtok (argv[0],"_");
+  while (mtok != NULL || i>2)
+  {
+    RmId[i]= atoi(mtok);
+    i++;
+    mtok = strtok (NULL, "_");
+  }
+
+  //Check whether process id and request id matches or not
+  if ( RmId[0]== ProcessID && RmId[1]==RequestID) {
+
+    save_device_name(atoi(argv[1]),argv[7]);
+
+  }
+
+}
+
+void save_device_name(int dev_id, char *dev_name) {
+
+  if (verbose) {
+  printf("Saving device name id= %d name=%s\n",dev_id,dev_name);
+  }
+
+
+  //Search DevNames
+  int i;
+  while ( i< MaxNumConfNames && DevNames[i].device_id > 0 ) {
+        if ( DevNames[i].device_id == dev_id ) {
+	  //Rewrite device name
+	  strcpy(DevNames[i].name, dev_name);
+	  if (verbose) {
+	  printf("Device saved DevNames (RW). id= %d name=%s\n",dev_id,dev_name);
+	  }
+	  return;
+        }
+      i++;
+      }
+  //i=0;
+
+  //save new item
+  while ( i< MaxNumConfNames) {
+        if ( DevNames[i].device_id == 0 ) {
+	  //save device name
+	  strcpy(DevNames[i].name, dev_name);
+	    if (verbose) {
+	    printf("Device saved DevNames. (new) id= %d name=%s\n",dev_id,dev_name);
+	    }
+	  DevNames[i].device_id=dev_id;
+	  return;
+        }
+      i++;
+      }
+  //No country for new device!!
+  if (verbose) {
+  printf("Device cannot be saved. MaxNumConfNames reached!\n");
+  }
+
+ return;
+}
+
 // Print help message
 void print_help() {
   printf("Usage: ant_tracker [options]\n");
@@ -394,13 +454,12 @@ void print_help() {
 
 int main(int argc, char **argv) {
 
+  //Get process id
+  ProcessID= getpid();
+
   // try environment variable first, set to default if failed
   IvyBus = getenv("IVYBUS");
   if (IvyBus == NULL) IvyBus = defaultIvyBus;
-
-  // Look for paparazzi folder (PAPARAZZI_HOME or assume local path by default)
-  PprzFolder = getenv("PAPARAZZI_HOME");
-  if (PprzFolder == NULL) PprzFolder = defaultPprzFolder;
 
   // Parse options
   int i;
@@ -441,7 +500,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  Load_Device_Names();
+  //Load_Device_Names();
 
 #ifdef USE_ORION
 tty_fd = init_serial_port();
@@ -464,6 +523,8 @@ printf("Using Orion Tracker\n");
   IvyInit ("ant_TR", "Anthenna Tracker READY", NULL, NULL, NULL, NULL);
   IvyBindMsg(on_FLIGHT_PARAM_STATUS, NULL, "ground FLIGHT_PARAM (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*)");
   IvyBindMsg(on_tracker_ANT_TRACK, NULL, "(\\S*) ANT_TRACKER (\\S*) (\\S*) (\\S*) (\\S*)");
+  IvyBindMsg(on_tracker_NEW_AC, NULL, "ground NEW_AIRCRAFT (\\S*)");
+  IvyBindMsg(on_tracker_GET_CONFIG, NULL, "(\\S*) ground CONFIG (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*) (\\S*)");
 
   IvyStart(IvyBus);
   //IvyStart("10.31.6.17");
@@ -473,14 +534,38 @@ printf("Using Orion Tracker\n");
   return 0;
 }
 
-
 int Get_Trac_Ind (int tracker_id) {
   return Check_Controlled_Tracker_List(tracker_id);
+}
+
+int check_device_name(int dev_id) {
+
+  //Search DevNames struct
+  int i;
+  while ( i< MaxNumConfNames && DevNames[i].device_id > 0 ) {
+        if ( DevNames[i].device_id == dev_id ) {
+
+	  return 1;
+        }
+      i++;
+      }
+
+  //no device found request for device name
+
+  if (dev_id>0) request_ac_config(dev_id);
+  return -1;
+
 }
 
 // Returns DevStatus array index of send device id (if device exists).
 // If device not found, adds it to the list and then send its new array index. If MaxNumDevices reached returns -1
 int Get_Dev_Ind(int device_id) {
+
+  //check whether device is recorded in DevNames
+  if (check_device_name(device_id) < 0) {
+    //device not in list
+    return -1;
+  }
 
   int i=0;
   //Search list
@@ -551,7 +636,10 @@ int Check_Controlled_Tracker_List (int Tracker_Id) {
   TrackContList[i].mode = 0;
   Refresh_Tracker_List();
   //Debug purposes
+  if (verbose) {
   printf("New tracker added.. (ID=%d)\n",Tracker_Id);
+  }
+
   return i;
 }
 
@@ -610,8 +698,8 @@ void Refresh_Tracker_List(void){
   while ( (TrackContList[i].used == 1) && (i < MaxNumDevices) ){
     Fill_Dev_Name(i);
     gtk_list_store_append(store,&iter);
-    //gtk_list_store_set(store,&iter,0,DevStatus[i].name,-1);
-    gtk_list_store_set(store,&iter,0,DevStatus[Get_Trac_Ind(TrackContList[i].tracker_id)].name,-1);
+
+    gtk_list_store_set(store,&iter,0,DevStatus[Get_Dev_Ind(TrackContList[i].tracker_id)].name,-1);
     i +=1;
   }
 
@@ -663,100 +751,15 @@ void Refresh_Tracker_Mode (void) {
     gtk_image_set_from_file(myGUI->app_logo,MOVING_LOGO);
     gtk_switch_set_active(myGUI->GtkSwitch_manuel_mod,TRUE);
   }
+
 }
+
 
 void Refresh_Sliders (void) {
 
 	gtk_range_set_value(myGUI->GtkSCale_pan_angle,TrackContList[Get_Trac_Ind(SelTrackerID)].pan_angle);
 	gtk_range_set_value(myGUI->GtkSCale_tilt_angle,TrackContList[Get_Trac_Ind(SelTrackerID)].tilt_angle);
 
-
-	}
-
-//Parse conf.xml file for device id and names
-void parseDoc(char *xmlFileName) {
-  xmlDocPtr doc;  // pointer to parse xml Document
-  xmlNodePtr cur; // node pointer. It interacts with individual node
-  xmlChar *device_id;
-  xmlChar *device_name;
-
-  // Parse XML file
-  doc = xmlParseFile(xmlFileName);
-
-  // Check to see that the document was successfully parsed.
-  if (doc == NULL ) {
-    fprintf(stderr,"Error!. Document is not parsed successfully. \n");
-    return;
-  }
-
-  // Retrieve the document's root element.
-  cur = xmlDocGetRootElement(doc);
-
-  // Check to make sure the document actually contains something
-  if (cur == NULL) {
-    fprintf(stderr,"Document is Empty\n");
-    xmlFreeDoc(doc);
-    return;
-  }
-
-  /* We need to make sure the document is the right type.
-   * "root" is the root type of the documents used in user Config XML file
-   */
-  if (xmlStrcmp(cur->name, (const xmlChar *) "conf")) {
-    fprintf(stderr,"Document is of the wrong type, root node != conf");
-    xmlFreeDoc(doc);
-    return;
-  }
-
-  cur = cur->xmlChildrenNode;
-  int i=0;
-  // This loop iterates through the elements that are children of "root"
-  while (cur != NULL) {
-    if ((!xmlStrcmp(cur->name, (const xmlChar *)"aircraft"))){
-      //DevNames[i].name=xmlGetProp(cur, (const xmlChar*)"name");
-      device_name = xmlGetProp(cur, (const xmlChar*)"name");
-      device_id = xmlGetProp(cur, (const xmlChar*)"ac_id");
-      char buffer[MaxNumConfNameLength];
-      sprintf(buffer, "%s",(char *) device_name);
-
-      //printf("%s",buffer);
-      buffer[MaxNumConfNameLength-1]='\0';
-      //g_sprintf(DevNames[i].name, "%s",buffer);
-      //DevNames[i].name=buffer;
-      strcpy(DevNames[i].name, buffer);
-
-      char buffer2[10];
-      sprintf(buffer2, "%s",device_id);
-      buffer[10]='\0';
-      DevNames[i].device_id=atoi(buffer2);
-
-      i +=1;
-    }
-    cur = cur->next;
-  }
-
-
-  xmlFree(device_id);
-  xmlFree(device_name);
-  xmlFreeDoc(doc);
-
-  /*
-   * Free the global variables that may
-   * have been allocated by the parser.
-   */
-    xmlCleanupParser();
-
-  return;
-
-} // end of XMLParseDoc function
-
-void Load_Device_Names (void) {
-
-  char xmlFileName[BUFLENx];
-  strcpy(xmlFileName, PprzFolder);
-  strcat(xmlFileName, "/conf/conf.xml");
-  printf("Paparazzi Home: %s\n", xmlFileName);
-  parseDoc (xmlFileName);
-
 }
+
 
