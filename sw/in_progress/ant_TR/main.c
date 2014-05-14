@@ -1,12 +1,12 @@
 /*Main loop takes input start_mod,tracker_id and aircraft_id
  * ant_TR [start_mod aircraft_id tracker_id ]
- * start_mod :		a for automatic
- * 					m for manuel
+ * start_mod :		a for automatic m for manuel
  * aircraft_id:		id of aircraft which is monitored by tracker_id (int)
  * tracker_id: 		id of tracker (int)
  * Paparazzi server sent  'ground NAV_STATUS 10 0 2 43 0 43.564118 1.481279 0.000000 147.000846 0.000000 0.000000'
 
 */
+
 
 #include <glib.h>
 #include <glib/gprintf.h>
@@ -22,22 +22,17 @@
 #include <unistd.h>
 
 
-//To parse conf.xml
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 #include "main.h"
 
 #ifdef USE_ORION
-#include "orion.h"
-
-#define ORIONSTEP 2
+  #include "orion.h"
+  #define ORIONSTEP 2
 #endif
 
 #define MANUAL 0
 #define AUTO 1
 #define GUI_PRECISION (8)
-#define LOGO "imgs/logo.png"
-#define MOVING_LOGO "imgs/moving_logo.gif"
+
 #define MaxNumDevices 25
 #define MaxNumConfNames 500
 #define MaxNumConfNameLength 100
@@ -52,8 +47,6 @@ char* IvyBus;
 
 // verbose flag
 int verbose = 0;
-
-char* PprzFolder;
 
 int StartParamUsed = 0;
 int tracker_mode;
@@ -83,7 +76,10 @@ void Fill_Dev_Name(int dev_index);
 int Get_Trac_Ind (int tracker_id);
 void Get_Device_Name( int dev_status_index );
 void Load_Device_Names (void);
-void parseDoc(char *xmlFileName);
+int check_device_name(int dev_id);
+void request_ac_config(int ac_id_req);
+void save_device_name(int dev_id, char *dev_name);
+
 
 typedef struct {
 	int used;
@@ -125,6 +121,7 @@ close(tty_fd);
 #endif
 
 IvyStop();
+
 gtk_main_quit();
 
 }
@@ -140,7 +137,7 @@ void on_window_ant_track_show(GtkWidget *object, gpointer user_data)  {
 
 }
 
-void on_combobox_aircrafts_changed (GtkWidget *object, gpointer user_data) {
+void on_combobox_aircrafts_changed (GtkWidget *object, gpointer user_data) {}
 
 void on_combobox_tracker_changed (GtkWidget *object, gpointer user_data) {
 
@@ -404,8 +401,8 @@ void save_device_name(int dev_id, char *dev_name) {
 
 
   //Search DevNames
-  int i;
-  while ( i< MaxNumConfNames && DevNames[i].device_id > 0 ) {
+  int i=0;
+  while ( (i< MaxNumConfNames) && (DevNames[i].device_id > 0) ) {
         if ( DevNames[i].device_id == dev_id ) {
 	  //Rewrite device name
 	  strcpy(DevNames[i].name, dev_name);
@@ -415,6 +412,7 @@ void save_device_name(int dev_id, char *dev_name) {
 	  return;
         }
       i++;
+      //if (DevNames[i].device_id > 0 ) break;
       }
   //i=0;
 
@@ -470,11 +468,11 @@ int main(int argc, char **argv) {
     }
     else if (strcmp(argv[i], "-m") == 0) {
       char StartMode=argv[++i][0];
-      if (StartMode=="m" || StartMode=="M") {
+      if (StartMode=='m' || StartMode=='M') {
 	tracker_mode=MANUAL;
 	TrackContList[0].mode=0;
       }
-      else if (StartMode=="a" || StartMode=="A") {
+      else if (StartMode=='a' || StartMode=='A') {
 	tracker_mode=AUTO;
 	TrackContList[0].mode=1;
       }
@@ -515,6 +513,7 @@ printf("Using Orion Tracker\n");
   bound_ui_items();
   gtk_widget_show (myGUI->window);
 
+
   if (StartParamUsed > 0) {
     gtk_combo_box_set_active(GTK_COMBO_BOX(myGUI->combobox_devices),1);
     gtk_combo_box_set_active(GTK_COMBO_BOX(myGUI->combobox_trackers),1);
@@ -541,13 +540,14 @@ int Get_Trac_Ind (int tracker_id) {
 int check_device_name(int dev_id) {
 
   //Search DevNames struct
-  int i;
-  while ( i< MaxNumConfNames && DevNames[i].device_id > 0 ) {
+  int i=0;
+  while ( (i< MaxNumConfNames) && (DevNames[i].device_id > 0) ) {
         if ( DevNames[i].device_id == dev_id ) {
 
 	  return 1;
         }
       i++;
+      //if () break;
       }
 
   //no device found request for device name

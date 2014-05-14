@@ -1,41 +1,36 @@
 #include <gtk/gtk.h>
 
-#define BUILDER_XML_FILE "ant_TR.xml"
-
-static char *start_mod;
+//#define BUILDER_XML_FILE "ant_TR.xml"
+#define BUILDER_XML_FILE "sw/in_progress/ant_TR/ant_tr_ui.glade"
+#define LOGO "sw/in_progress/ant_TR/imgs/logo_ant.png"
+#define MOVING_LOGO "sw/in_progress/ant_TR/imgs/moving_logo.gif"
 
 typedef struct
 {
-	GtkBuilder			*builder;
-        GtkWidget			*window;
-        GtkSpinner			*spinner;
-        GtkRange			*GtkSCale_pan_angle;
-        GtkRange			*GtkSCale_tilt_angle;
-        GtkSwitch			*GtkSwitch_manuel_mod;
-        GtkStatusbar			*statusbar;
+GtkBuilder	*builder;
+GtkWidget	*window;
+GtkRange	*GtkSCale_pan_angle;
+GtkRange	*GtkSCale_tilt_angle;
+GtkSwitch	*GtkSwitch_manuel_mod;
 
-        GtkComboBox			*combobox_devices;
-        GtkComboBox			*combobox_trackers;
+GtkComboBox	*combobox_devices;
+GtkComboBox	*combobox_trackers;
 
-        GtkLabel			*label;
-	GtkLabel			*label_aircraft_east;
-	GtkLabel			*label_aircraft_north;
-	GtkLabel			*label_aircraft_alt;
-	GtkLabel			*label_tracker_east;
-	GtkLabel			*label_tracker_north;
-	GtkLabel			*label_tracker_alt;
-	GtkLabel			*label_aircraft_id;
-	GtkLabel			*label_tracker_id;
-	GtkLabel			*label_tracker_pitch_angle;
-	GtkLabel			*label_tracker_roll_angle;
-	GtkImage			*app_logo;
-        guint				statusbar_context_id;
-        gchar				*filename;
+GtkLabel	*label_aircraft_east;
+GtkLabel	*label_aircraft_north;
+GtkLabel	*label_aircraft_alt;
+GtkLabel	*label_tracker_east;
+GtkLabel	*label_tracker_north;
+GtkLabel	*label_tracker_alt;
+GtkLabel	*label_aircraft_id;
+GtkLabel	*label_tracker_id;
+GtkLabel	*label_tracker_pitch_angle;
+GtkLabel	*label_tracker_roll_angle;
+GtkImage	*app_logo;
+guint	statusbar_context_id;
+gchar	*filename;
 }myGTK;
-
 myGTK *myGUI;
-
-
 
 void show_err_msg (char *err_msg_text,int rr);
 
@@ -43,16 +38,13 @@ void show_err_msg (char *err_msg_text,int rr);
 // bound_ui_items() function bounds myGTK object items before entering gtk loop
 void bound_ui_items(void) {
 
-	//Pre functions
-	(myGUI->builder) = gtk_builder_new ();
+
+	myGUI->builder = gtk_builder_new ();
         gtk_builder_add_from_file (myGUI->builder, BUILDER_XML_FILE , NULL);
 
-		//Bounding ui items
+	//Bounding ui items
         myGUI->window = GTK_WIDGET (gtk_builder_get_object (myGUI->builder, "window_ant_track"));
 
-        myGUI->spinner = GTK_SPINNER (gtk_builder_get_object (myGUI->builder, "spinner_processing"));
-
-        myGUI->label = GTK_LABEL (gtk_builder_get_object (myGUI->builder, "label2"));
         myGUI->label_aircraft_east = GTK_LABEL (gtk_builder_get_object (myGUI->builder, "label_aircraft_east"));
         myGUI->label_aircraft_north = GTK_LABEL (gtk_builder_get_object (myGUI->builder, "label_aircraft_north"));
         myGUI->label_aircraft_alt = GTK_LABEL (gtk_builder_get_object (myGUI->builder, "label_aircraft_alt"));
@@ -69,12 +61,10 @@ void bound_ui_items(void) {
 
         myGUI->GtkSwitch_manuel_mod = GTK_SWITCH (gtk_builder_get_object (myGUI->builder, "switch_manuel_mod"));
 
-        myGUI->statusbar = GTK_STATUSBAR(gtk_builder_get_object (myGUI->builder, "statusbar_ant_TR"));
-
         //combobox_aircrafts
         myGUI->combobox_devices = GTK_COMBO_BOX (gtk_builder_get_object (myGUI->builder, "combobox_devices"));
         myGUI->combobox_trackers = GTK_COMBO_BOX (gtk_builder_get_object (myGUI->builder, "combobox_trackers"));
-        //myGUI->aircrafts_liststore= GTK_LIST_STORE (gtk_builder_get_object (myGUI->builder, "liststore_aircrafts"));
+
 	myGUI->app_logo=GTK_IMAGE (gtk_builder_get_object (myGUI->builder, "image_logo"));
 
 
@@ -93,14 +83,14 @@ int system_check(void) {
         }
         return 0;
 }
-
+/*
 void tepki_ver (void){
 //
-		gtk_spinner_start (myGUI->spinner);
-		gtk_label_set_text(myGUI->label,"Tepkiliyim!");
+
+
 		IvySendMsg("Ivyde Tepkiliyim!");
 		gtk_range_set_value(myGUI->GtkSCale_pan_angle,99);
-		gtk_statusbar_push(myGUI->statusbar,0,"<<<<<< Tepkiliyim! >>>>>>");
+
 		//show_err_msg("Pop up mesajdan da tepkiliyim!! ");
 
 }
@@ -119,7 +109,7 @@ void show_err_msg (char *err_msg_text, int rr){
 		gtk_widget_destroy (dialog);
 
 }
-
+*/
 
 
 
