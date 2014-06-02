@@ -137,9 +137,9 @@ void on_window_ant_track_show(GtkWidget *object, gpointer user_data)  {
 
 }
 
-void on_combobox_aircrafts_changed (GtkWidget *object, gpointer user_data) {}
+void on_combobox_aircrafts_changed (GtkComboBox *widget, gpointer user_data){}
 
-void on_combobox_tracker_changed (GtkWidget *object, gpointer user_data) {
+void on_combobox_tracker_changed (GtkComboBox *widget, gpointer user_data) {
 
 
 //!!!!!!get id of selected device
