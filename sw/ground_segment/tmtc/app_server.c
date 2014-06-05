@@ -109,6 +109,8 @@ typedef struct {
   int used ;
   int client_port; //do we need that??
   char client_ip[MAXIPLEN];
+  //GSocketConnection *connection;
+  gpointer ClientTcpData;
 } client_data;
 
 client_data ConnectedClients[MAXCLIENT];  //Holds all status of devices
@@ -143,7 +145,7 @@ void remove_client(char* RemClientIpAd) {
 }
 
 //Record client (if new)
-void add_client(char* ClientIpAd) {
+void add_client(char* ClientIpAd, gpointer connection_in) {
   /* Check if client exists. If exists return else record it */
   int i;
   for (i = 0; i < MAXCLIENT; i++) {
@@ -160,6 +162,7 @@ void add_client(char* ClientIpAd) {
 
     //record new client ip
     g_stpcpy(ConnectedClients[i].client_ip,ClientIpAd);
+    ConnectedClients[i].ClientTcpData = connection_in;
     //
     ConnectedClients[i].used = 1;
     if (verbose) {
@@ -185,12 +188,14 @@ int get_ac_data(char* InStr, char* RetBuf) {
   //Get & create return string
   if ( AcID > 0 ) {
     //Dont search it, it is thereeee :)
-    sprintf(RetBuf, "AppServer ACd %d %s %s %s %d %d\n", AcID,
+    sprintf(RetBuf, "AppServer ACd %d %s %s %s %d %d %d\n", AcID,
         DevNames[AcID].name,
         DevNames[AcID].type,
         DevNames[AcID].color,
         DevNames[AcID].dl_launch_ind,
-        DevNames[AcID].kill_thr_ind);
+        DevNames[AcID].kill_thr_ind,
+	DevNames[AcID].flight_altitude_ind
+ 	  );
   }
   return AcID;
 }
@@ -253,7 +258,23 @@ int get_bl_data(char* InStr, char* RetBuf) {
 //Bfoadcast ivy msgs to clients
 void broadcast_to_clients () {
 
+
+  GError *error = NULL;
   int i;
+    for (i = 0; i < MAXCLIENT; i++) {
+      if (ConnectedClients[i].used > 0) {
+	//printf("App Server: 1.. %s\n",ivybuffer);
+	GOutputStream * ostream = g_io_stream_get_output_stream (ConnectedClients[i].ClientTcpData);
+	//printf("App Server: 2.. %s\n",ivybuffer);
+        g_output_stream_write(ostream, ivybuffer, strlen(ivybuffer), NULL, &error);
+      }
+
+    }
+
+
+
+
+  i=0;
   for (i = 0; i < MAXCLIENT; i++) {
     if (ConnectedClients[i].used > 0) {
 
@@ -286,6 +307,7 @@ void broadcast_to_clients () {
       g_object_unref(udpSocket);
     }
   }
+
 }
 
 //Read tcp requests of connected clients
@@ -380,6 +402,9 @@ gboolean network_read(GIOChannel *source, GIOCondition cond, gpointer data) {
     //Client disconnected
     if (verbose) {
       printf("App Server: Client disconnected without saying 'bye':(\n");
+      GSocketAddress *sockaddr = g_socket_connection_get_remote_address(data, NULL);
+      GInetAddress *addr = g_inet_socket_address_get_address(G_INET_SOCKET_ADDRESS(sockaddr));
+      remove_client(g_inet_address_to_string(addr));
       fflush(stdout);
     }
     g_string_free(s, TRUE);
@@ -391,7 +416,7 @@ gboolean network_read(GIOChannel *source, GIOCondition cond, gpointer data) {
   g_string_free(s, TRUE);
   return TRUE;
 }
-
+//GIOStream *stream
 //New tcp conection
 gboolean new_connection(GSocketService *service, GSocketConnection *connection, GObject *source_object, gpointer user_data) {
 
@@ -406,7 +431,7 @@ gboolean new_connection(GSocketService *service, GSocketConnection *connection, 
   }
 
   //Record client (if new)
-  add_client(g_inet_address_to_string(addr));
+  add_client(g_inet_address_to_string(addr), connection);
 
   g_object_ref (connection);
   GSocket *socket = g_socket_connection_get_socket(connection);
