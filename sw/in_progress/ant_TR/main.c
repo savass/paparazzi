@@ -33,6 +33,9 @@
 #define AUTO 1
 #define GUI_PRECISION (8)
 
+#define PANGOTOSPEED 100.0
+#define TILTGOTOSPEED 65.0
+
 #define MaxNumDevices 25
 #define MaxNumConfNames 500
 #define MaxNumConfNameLength 100
@@ -179,7 +182,7 @@ Refresh_Aircraft_Labels();
 int orion_pan_buf= 1;
 int orion_tilt_buf = 1;
 
-extern void on_pan_angle_changed (GtkRange *object, gpointer user_data);
+//extern void on_pan_angle_changed (GtkRange *object, gpointer user_data);
 void on_pan_angle_changed (GtkRange *object, gpointer user_data) {
 
         if (TrackContList[Get_Trac_Ind(SelTrackerID)].mode == MANUAL) {
@@ -204,9 +207,9 @@ void on_pan_angle_changed (GtkRange *object, gpointer user_data) {
                   }
         #endif
 
+
 	}
-
-
+IvySendMsg("anttrUI ANT_DRIVER_GOTO 1 %f %f" , TrackContList[Get_Trac_Ind(SelTrackerID)].pan_angle ,PANGOTOSPEED);
 }
 
 
@@ -233,6 +236,7 @@ void on_tilt_angle_changed (GtkRange *object, gpointer user_data) {
         }
         #endif
 
+        IvySendMsg("anttrUI ANT_DRIVER_GOTO 0 %f %f" , TrackContList[Get_Trac_Ind(SelTrackerID)].tilt_angle ,TILTGOTOSPEED );
 	}
 
 
